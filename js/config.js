@@ -1,0 +1,71 @@
+/**
+ * CONFIG.JS — Tous les chiffres d'équilibrage et constantes du jeu (Phase 4)
+ */
+window.GAME_CONFIG = {
+  VERSION: '1.3.0-phase4',
+  SAVE_VERSION: 4,
+
+  // Performance & Affichage
+  MAX_DPR: 2,
+  MAX_PARTICLES: 105,
+  MAX_FLOATING_TEXTS: 42,
+  MAX_PROJECTILES: 160,
+  ARENA_WIDTH: 420,
+  ARENA_HEIGHT: 680,
+  WALL_THICKNESS: 26,
+
+  // Game Feel
+  HIT_STOP_MS: 32,
+  BOSS_HIT_STOP_MS: 85,
+  SCREEN_SHAKE_DECAY: 0.86,
+  FLASH_DURATION_MS: 90,
+
+  // Progression d'une Run (10 salles par Biome, 6 Biomes complets)
+  ROOMS_PER_BIOME: 10,
+  MIDBOSS_ROOM: 5,
+  WAVES_PER_ROOM_MIN: 2,
+  WAVES_PER_ROOM_MAX: 3,
+  ENEMY_SPAWN_WARN_MS: 850,
+
+  // Équilibrage Joueur & Pression
+  PLAYER: {
+    BASE_INVULN_MS: 550,
+    PRESSURE_GAIN_MOVE: 26,
+    PRESSURE_GAIN_SHOOT: 8,
+    PRESSURE_GOLD_MIN: 65,
+    PRESSURE_GOLD_MAX: 100,
+    PRESSURE_MIN_TO_TRIGGER: 35,
+    IMPULSE_COOLDOWN_MS: 650,
+    IMPULSE_DURATION_MS: 320,
+    IMPULSE_SPEED_MULT: 2.65,
+    MAGNET_BASE_RADIUS: 85
+  },
+
+  // Équilibrage Difficulté par Salle et par Biome (Secteurs 1 à 6)
+  DIFFICULTY: {
+    HP_SCALE_PER_ROOM: 0.11,
+    DMG_SCALE_PER_ROOM: 0.055,
+    BIOME_HP_MULT: [1.0, 1.38, 1.80, 2.25, 2.75, 3.35],
+    BIOME_DMG_MULT: [1.0, 1.18, 1.36, 1.55, 1.75, 1.98],
+    FIRST_RUN_ASSIST_DR: 0.25,
+    ELITE_HP_MULT: 2.25,
+    ELITE_SIZE_MULT: 1.28,
+    ELITE_BOLT_MULT: 3
+  },
+
+  // Récompenses & Monnaies
+  ECONOMY: {
+    BOLT_XP_VALUE: 12,
+    BASE_XP_TO_LEVEL: 45,
+    XP_GROWTH_PER_LEVEL: 24,
+    REPAIR_ROOM_HEAL_PCT: 0.40,
+    OVERCLOCK_HP_COST_PCT: 0.20,
+    VENDING_MODULE_COST: 32,
+    VENDING_HEAL_COST: 16,
+    GOLDEN_COG_PER_ROOM: 5,
+    GOLDEN_COG_MIDBOSS_BONUS: 16,
+    GOLDEN_COG_VICTORY_BONUS: 45,
+    ETHER_CRYSTAL_MIDBOSS: 1,
+    ETHER_CRYSTAL_BOSS: 3
+  }
+};

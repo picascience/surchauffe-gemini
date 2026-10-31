@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Écrou &amp; Vapeur : Les Ruines d'Automatia</title>
+
+  <!-- Configuration PWA & iPhone / Safari Écran d'accueil -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Écrou &amp; Vapeur" />
+  <meta name="theme-color" content="#18100b" />
+
+  <link rel="manifest" href="manifest.json" />
+  <link id="apple-touch-icon-link" rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Canvas 2D Plein Écran -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Bulle Toast d'Astuce / Tutoriel Intégré -->
+  <div id="game-toast" class="toast-banner hidden"></div>
+
+  <!-- ATH en Jeu (HUD) -->
+  <header id="hud-layer" class="hidden">
+    <div class="hud-top-row">
+      <div class="hud-bars-col">
+        <div class="hud-bar-wrap">
+          <div id="hud-hp-fill" class="hud-hp-fill"></div>
+          <div class="hud-bar-text">🛡️ Blindage : <span id="hud-hp-text">120 / 120</span></div>
+        </div>
+        <div class="hud-bar-wrap">
+          <div id="hud-pressure-fill" class="hud-pressure-fill"></div>
+          <div id="hud-pressure-label" class="hud-bar-text">Pression : 0%</div>
+        </div>
+      </div>
+
+      <div class="hud-right-meta">
+        <div class="hud-room-box">
+          <span id="hud-room-badge">⚙️ S.1 - Salle 1/10</span>
+          <span id="hud-lvl-badge">Niv.1 | 🔩 0</span>
+          <div class="hud-xp-mini"><div id="hud-xp-fill"></div></div>
+        </div>
+        <button id="btn-pause" class="btn-icon-pause" aria-label="Pause">⏸</button>
+      </div>
+    </div>
+
+    <!-- Barre de Boss / Sous-Boss (Salles 5 et 10) -->
+    <div id="hud-boss-bar" class="hud-boss-wrap hidden">
+      <div id="hud-boss-name">Le Grand Carillon Détraqué</div>
+      <div class="hud-boss-track">
+        <div id="hud-boss-fill"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ÉCRAN D'ACCUEIL / CAMP DE LA CARAVANE -->
+  <section id="screen-title" class="screen-overlay">
+    <div class="top-bar">
+      <div class="currencies-row">
+        <div class="currency-pill">⚙️ <span id="home-golden-cogs">0</span></div>
+        <div class="currency-pill crystal">💎 <span id="home-ether-crystals">0</span></div>
+      </div>
+      <div class="top-right-controls">
+        <button id="btn-mute-home" class="btn-mute-icon" aria-label="Activer ou couper les bruitages">🔊</button>
+        <div id="version-badge" class="version-pill" title="Tapez 5 fois pour le Menu Debug">v1.3.0</div>
+      </div>
+    </div>
+
+    <div class="hero-showcase">
+      <div class="game-logo-badge">
+        <div class="game-logo-title">ÉCROU &amp; VAPEUR</div>
+        <div class="game-logo-sub">Les Ruines d'Automatia</div>
+      </div>
+
+      <!-- Sélecteur de Secteur (Biomes 1 à 6) -->
+      <div class="selector-row">
+        <button id="btn-prev-biome" class="btn-arrow-nav" aria-label="Secteur précédent">◀</button>
+        <div id="biome-select-title" class="biome-selector-pill">⚙️ Secteur 1/6 : L'Horlogerie Rouillée</div>
+        <button id="btn-next-biome" class="btn-arrow-nav" aria-label="Secteur suivant">▶</button>
+      </div>
+
+      <!-- Sélecteur d'Engin Jouable (6 Châssis) -->
+      <div class="selector-row">
+        <button id="btn-prev-hero" class="btn-arrow-nav" aria-label="Engin précédent">◀</button>
+        <div class="hero-card-preview" style="flex:1;">
+          <div class="hero-card-header">
+            <span id="hero-select-name" class="hero-name">⚙️ Toupillon MK-I</span>
+            <span id="hero-select-tag" class="hero-tag">Toupie Blindée</span>
+          </div>
+          <p id="hero-select-desc" class="hero-desc"></p>
+          <div id="hero-select-quote" class="hero-quote"></div>
+        </div>
+        <button id="btn-next-hero" class="btn-arrow-nav" aria-label="Engin suivant">▶</button>
+      </div>
+
+      <div id="caravan-quip" class="caravan-box">
+        🦾 [Bras-Soudeur #4] : « Bienvenue à l'Atelier de la Caravane ! »
+      </div>
+    </div>
+
+    <div class="bottom-actions">
+      <button id="btn-start-run" class="btn-primary">🚀 LANCER L'EXPÉDITION</button>
+      <div class="hub-two-cols">
+        <button id="btn-open-workshop" class="btn-workshop">
+          <span id="workshop-lvl-badge">🔧 Atelier (0/40)</span>
+        </button>
+        <button id="btn-open-codex" class="btn-workshop">
+          <span id="codex-count-badge">📖 Codex (0/84)</span>
+        </button>
+      </div>
+      <div class="hub-two-cols">
+        <button id="btn-open-achievements" class="btn-secondary">
+          <span id="ach-count-badge">🏆 Succès (0/52)</span>
+        </button>
+        <button id="btn-open-story" class="btn-secondary">
+          <span id="story-count-badge">📜 Histoire (1/7)</span>
+        </button>
+      </div>
+      <button id="btn-open-save" class="btn-secondary">💾 Exporter / Importer ma Sauvegarde</button>
+    </div>
+  </section>
+
+  <!-- MODALE : L'ATELIER DE LA CARAVANE (ARBRE D'AMÉLIORATIONS) -->
+  <div id="modal-workshop" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">🔧 ATELIER DE LA CARAVANE</h2>
+      <div class="workshop-currency-bar">
+        <div class="currency-pill">⚙️ <span id="workshop-cogs-count">0</span> Écrous Dorés</div>
+        <div class="currency-pill crystal">💎 <span id="workshop-crystals-count">0</span> Cristaux</div>
+      </div>
+
+      <div id="workshop-npcs-container"></div>
+      <div id="workshop-upgrades-container" class="upgrades-scroll-list"></div>
+
+      <button id="btn-close-workshop" class="btn-primary">✅ RETOUR AU CAMP</button>
+    </div>
+  </div>
+
+  <!-- MODALE : LE CODEX DE LA CARAVANE (MODULES, AUTOMATES, CHÂSSIS, SUCCÈS, HISTOIRE) -->
+  <div id="modal-codex" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">📖 ENCYCLOPÉDIE MÉCANIQUE</h2>
+      <div class="codex-tabs-row five-tabs">
+        <button class="codex-tab-btn active" data-tab="modules">⚙️ Modules</button>
+        <button class="codex-tab-btn" data-tab="enemies">🤖 Automates</button>
+        <button class="codex-tab-btn" data-tab="heroes">🚀 Châssis</button>
+        <button class="codex-tab-btn" data-tab="achievements">🏆 Succès</button>
+        <button class="codex-tab-btn" data-tab="story">📜 Histoire</button>
+      </div>
+      <div id="codex-content-container" class="upgrades-scroll-list"></div>
+      <button id="btn-close-codex" class="btn-primary">✅ FERMER LE CODEX</button>
+    </div>
+  </div>
+
+  <!-- MODALE : VRAIE FIN (LE RÉVEIL D'AUTOMATIA) -->
+  <div id="modal-true-ending" class="modal-backdrop hidden">
+    <div class="modal-card" style="border-color:#ffd32a;">
+      <h2 class="modal-title" style="color:#ffd32a;">🌟 LE RÉVEIL D'AUTOMATIA</h2>
+      <p class="modal-subtitle">Chapitre Final — Les 3 Clés d'Horlogerie sont réunies !</p>
+      <div class="codex-item-card" style="border-color:#00f2fe; padding:12px;">
+        <div class="codex-item-title" style="color:#00f2fe;">📻 Radio-Cuivre &amp; L'Équipe de la Caravane</div>
+        <div class="codex-item-desc" style="font-size:0.84rem; line-height:1.45; color:#fff6ec; margin-top:4px;">
+          « Les trois Clés d'Horlogerie tournent à l'unisson dans le Grand Balancier ! Cœur-Zéro a enfin purgé sa boucle d'erreur : dans les six Secteurs de la cité souterraine, les soupapes s'apaisent, les serres de cristal illuminent les dômes, les turbines d'écluse purifient les canaux et tous les automates retrouvent leur harmonie originelle.<br/><br/>
+          Merci d'avoir restauré les Ruines d'Automatia, Ingénieur ! »
+        </div>
+      </div>
+      <button id="btn-close-true-ending" class="btn-primary">🎉 CONTINUER L'AVENTURE</button>
+    </div>
+  </div>
+
+  <!-- MODALE : CHOIX D'UN MODULE D'INVENTION (FIN DE SALLE) -->
+  <div id="modal-modules" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">⚙️ NOUVEAU MODULE</h2>
+      <p class="modal-subtitle">Choisissez une invention (2, 4 ou 6 d'une même famille = Synergie !) :</p>
+      <div id="module-cards-container" class="cards-stack"></div>
+    </div>
+  </div>
+
+  <!-- MODALE : CHOIX DE LA PORTE SUIVANTE (EMBRANCHEMENT) -->
+  <div id="modal-doors" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">🧭 CHOIX DU CHEMIN</h2>
+      <p class="modal-subtitle">Quelle porte voulez-vous ouvrir ?</p>
+      <div id="door-cards-container" class="cards-stack"></div>
+    </div>
+  </div>
+
+  <!-- MODALE : ÉTABLI DE SOUDURE / PRESSE INSTABLE -->
+  <div id="modal-repair" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">🔧 ATELIER DE SECTEUR</h2>
+      <p class="modal-subtitle">Une halte mécanique sécurisée au milieu des ruines :</p>
+      <div class="cards-stack">
+        <button id="btn-station-heal" class="door-card"></button>
+        <button id="btn-station-overclock" class="door-card"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE : ÉVÉNEMENTS SPÉCIAUX (DISTRIBUTEUR AUTOMATIQUE & COFFRE PIÉGÉ) -->
+  <div id="modal-event" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 id="event-modal-title" class="modal-title">🏪 DISTRIBUTEUR</h2>
+      <p id="event-modal-subtitle" class="modal-subtitle"></p>
+      <div id="event-options-stack" class="cards-stack"></div>
+    </div>
+  </div>
+
+  <!-- ÉCRAN : FIN DE RUN (REMORQUAGE OU VICTOIRE) -->
+  <section id="screen-gameover" class="screen-overlay hidden">
+    <div></div>
+    <div class="modal-card" style="margin: 0 auto;">
+      <h2 id="gameover-title" class="modal-title">🔧 REMORQUAGE À L'ATELIER</h2>
+      <p id="gameover-subtitle" class="modal-subtitle"></p>
+
+      <div id="gameover-stats" class="stats-summary-card"></div>
+
+      <div>
+        <p style="font-size:0.8rem; color:#d2b49c; margin-bottom:6px; font-weight:700;">Modules installés :</p>
+        <div id="gameover-modules" class="mods-pill-container"></div>
+      </div>
+
+      <div class="bottom-actions" style="margin-top:6px;">
+        <button id="btn-gameover-workshop" class="btn-workshop">🔧 DÉPENSER MES ÉCROUS À L'ATELIER</button>
+        <button id="btn-retry-run" class="btn-primary">🔄 REPARTIR IMMÉDIATEMENT</button>
+        <button id="btn-back-home" class="btn-secondary">🏕️ Retour au Camp de la Caravane</button>
+      </div>
+    </div>
+    <div></div>
+  </section>
+
+  <!-- MODALE : PAUSE -->
+  <div id="modal-pause" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">⏸ SYSTÈME EN PAUSE</h2>
+      <p class="modal-subtitle">Synergies &amp; Modules actifs sur votre châssis :</p>
+      <div id="pause-modules-list" style="max-height: 200px; overflow-y: auto;"></div>
+      <button id="btn-mute-pause" class="btn-secondary">🔊 Bruitages : ACTIVÉS</button>
+      <button id="btn-resume" class="btn-primary">▶️ REPRENDRE</button>
+      <button id="btn-abandon" class="btn-danger">🏳️ Remorquer à l'Atelier</button>
+    </div>
+  </div>
+
+  <!-- MODALE : EXPORT / IMPORT SAUVEGARDE -->
+  <div id="modal-save" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">💾 SAUVEGARDE TEXTE</h2>
+      <p id="save-feedback" class="modal-subtitle">Copiez ce code ou collez un code existant :</p>
+      <textarea id="txt-save-code" class="save-textarea" spellcheck="false"></textarea>
+      <button id="btn-copy-save" class="btn-primary">📋 COPIER MON CODE</button>
+      <button id="btn-import-save" class="btn-secondary">📥 CHARGER CE CODE</button>
+      <button id="btn-close-save" class="btn-secondary">Fermer</button>
+    </div>
+  </div>
+
+  <!-- MODALE : MENU DEBUG CACHÉ (5 TAPS SUR LA VERSION) -->
+  <div id="modal-debug" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">🛠️ CONSOLE D'INGÉNIEUR (DEBUG)</h2>
+      <p class="modal-subtitle">Outils de test rapide Phase 4 :</p>
+      <button id="dbg-add-currency" class="btn-primary">+2500 ⚙️, +60 💎 &amp; Tout Débloquer (6/6)</button>
+      <button id="dbg-godmode" class="btn-secondary">🛡️ Activer / Désactiver Blindage Infini</button>
+      <button id="dbg-free-module" class="btn-secondary">⚙️ Ouvrir un Choix de Module</button>
+      <div class="codex-tabs-row">
+        <button id="dbg-biome-1" class="codex-tab-btn active">⚙️ S.1 Horlogerie</button>
+        <button id="dbg-biome-2" class="codex-tab-btn active">💎 S.2 Serres</button>
+        <button id="dbg-biome-3" class="codex-tab-btn active">🔥 S.3 Fonderie</button>
+      </div>
+      <div class="codex-tabs-row">
+        <button id="dbg-biome-4" class="codex-tab-btn active">⚡ S.4 Archives</button>
+        <button id="dbg-biome-5" class="codex-tab-btn active">🌊 S.5 Canaux</button>
+        <button id="dbg-biome-6" class="codex-tab-btn active">⏳ S.6 Balancier</button>
+      </div>
+      <button id="dbg-skip-warden" class="btn-workshop">🚨 Aller Salle 10 (Boss du Secteur actuel)</button>
+      <button id="dbg-true-ending" class="btn-workshop">🌟 Tester l'Écran de la Vraie Fin</button>
+      <button id="dbg-reset-save" class="btn-danger">♻️ Réinitialiser toute la sauvegarde</button>
+      <button id="btn-close-debug" class="btn-secondary">Fermer</button>
+    </div>
+  </div>
+
+  <!-- Générateur d'icône PWA 100% en code + Enregistrement Service Worker -->
+  <script>
+    window.PWAHelper = (function () {
+      function renderIconToCanvas(size) {
+        const c = document.createElement('canvas');
+        c.width = size;
+        c.height = size;
+        const ctx = c.getContext('2d');
+
+        const r = size * 0.22;
+        ctx.fillStyle = '#24140e';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, size, size, r);
+        ctx.fill();
+
+        const cx = size / 2;
+        const cy = size / 2;
+        const outerR = size * 0.37;
+        const innerR = size * 0.28;
+        const teeth = 10;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.beginPath();
+        const step = (Math.PI * 2) / (teeth * 2);
+        for (let i = 0; i < teeth * 2; i++) {
+          const rad = i % 2 === 0 ? outerR : innerR;
+          const a = i * step;
+          const x = Math.cos(a) * rad;
+          const y = Math.sin(a) * rad;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = '#f39c12';
+        ctx.fill();
+        ctx.lineWidth = size * 0.035;
+        ctx.strokeStyle = '#140a06';
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.21, 0, Math.PI * 2);
+        ctx.fillStyle = '#d35400';
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.1, 0, Math.PI * 2);
+        ctx.fillStyle = '#00f2fe';
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        return c;
+      }
+
+      function applyAppleTouchIcon() {
+        try {
+          const c = renderIconToCanvas(192);
+          const dataUrl = c.toDataURL('image/png');
+          const link = document.getElementById('apple-touch-icon-link');
+          if (link) link.href = dataUrl;
+        } catch (e) {}
+      }
+
+      function downloadGeneratedIcon(size) {
+        const c = renderIconToCanvas(size || 512);
+        const a = document.createElement('a');
+        a.download = `icon-${size || 512}.png`;
+        a.href = c.toDataURL('image/png');
+        a.click();
+      }
+
+      applyAppleTouchIcon();
+
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+
+      return { downloadGeneratedIcon };
+    })();
+  </script>
+
+  <!-- Chargement modulaire des scripts du jeu -->
+  <script src="js/config.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/engine.js"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.GameEngine.init();
+      window.UI.init();
+    });
+  </script>
+</body>
+</html>
